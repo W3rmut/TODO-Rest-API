@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"restapi/pkg/config"
 	handlers "restapi/pkg/handler"
 	"restapi/pkg/service"
 )
@@ -11,6 +13,12 @@ import (
 func main() {
 
 	r := mux.NewRouter()
+
+	//Set Configs
+	config.ParseConfig("pkg/config/config.toml")
+	fmt.Println(config.ResultConfig.DatabaseConfig.ConnectionString)
+	//set jwt key from struct
+	handlers.UpdateKey()
 
 	//Create database connect
 	err := service.Connect()
@@ -66,6 +74,6 @@ func main() {
 	DeleteItem := http.HandlerFunc(handlers.DeleteItem)
 	r.Handle("/lists/{idList}/items/{idItem}", handlers.CheckTokenHandler(handlers.CheckListMiddleware(DeleteItem))).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe(config.ResultConfig.ServerConfig.Port, r))
 
 }

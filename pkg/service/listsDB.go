@@ -25,7 +25,7 @@ type ListOutput struct {
 
 func CheckList(userId string, listID string) bool {
 	var result ListInput
-	collection := clientGlobal.Database("test").Collection("lists")
+	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	listIdBS, _ := primitive.ObjectIDFromHex(listID)
 	filter := bson.D{{"owner_id", userId}, {"_id", listIdBS}}
 	err := collection.FindOne(context.TODO(), filter).Decode(&result)
@@ -39,7 +39,7 @@ func CheckList(userId string, listID string) bool {
 
 func GetAllListsDB(userId string) []ListInput {
 	var ListsResult []ListInput
-	collection := clientGlobal.Database("test").Collection("lists")
+	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 
 	filter := bson.D{{"owner_id", userId}}
 
@@ -61,7 +61,7 @@ func GetListDB(params map[string]string, userId string) (ListInput, error) {
 
 	var result ListInput
 
-	collection := clientGlobal.Database("test").Collection("lists")
+	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	var objectID, _ = primitive.ObjectIDFromHex(params["id"])
 	filter := bson.D{{"owner_id", userId}, {"_id", objectID}}
 	collection.FindOne(context.TODO(), filter).Decode(&result)
@@ -70,7 +70,8 @@ func GetListDB(params map[string]string, userId string) (ListInput, error) {
 }
 
 func CreateListDB(list ListOutput) int {
-	collection := clientGlobal.Database("test").Collection("lists")
+
+	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	result, err := collection.InsertOne(context.TODO(), list)
 	fmt.Println(result, err)
 	return 1
@@ -88,7 +89,7 @@ func UpdateListDB(list ListOutput, userID string, listID string) int {
 	}
 
 	fmt.Println(newListBson)
-	collection := clientGlobal.Database("test").Collection("lists")
+	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	result, err := collection.UpdateOne(context.TODO(), filter, newListBson)
 	fmt.Println(result, err)
 	return 1
@@ -96,7 +97,7 @@ func UpdateListDB(list ListOutput, userID string, listID string) int {
 
 func DeleteListDB(params map[string]string, userId string) error {
 
-	collection := clientGlobal.Database("test").Collection("lists")
+	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	var objectID, _ = primitive.ObjectIDFromHex(params["id"])
 	filter := bson.D{{"owner_id", userId}, {"_id", objectID}}
 	collection.DeleteOne(context.TODO(), filter)

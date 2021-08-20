@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
+	"restapi/pkg/config"
 	"restapi/pkg/service"
 	"strings"
 	"time"
 )
 
-const key = "aseredqwefs123ddgaqwetsdg465"
+var key string
+
+func UpdateKey() {
+	key = config.ResultConfig.JwtConfig.JwtKey
+}
 
 type jwtStruct struct {
 	jwt.StandardClaims

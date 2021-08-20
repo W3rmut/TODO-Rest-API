@@ -79,6 +79,7 @@ func UpdateItemDB(listID string, itemID string, newItem ItemInput) (interface{},
 
 	var objectID, _ = primitive.ObjectIDFromHex(itemID)
 	filter := bson.D{{"list_id", listID}, {"_id", objectID}}
+
 	newItemBson := bson.D{
 		{"$set", bson.D{
 			{"title", newItem.Title},

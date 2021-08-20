@@ -9,8 +9,6 @@ import (
 	listsdb "restapi/pkg/service"
 )
 
-var UserID = "6112c21bb83141242317ecc7"
-
 func GetAllLists(w http.ResponseWriter, r *http.Request) {
 
 	idUser, errName := GetUserId(r)
@@ -55,7 +53,7 @@ func UpdateList(w http.ResponseWriter, r *http.Request) {
 	listID := listIDVar["id"]
 	fmt.Println(listID, idUser)
 
-	result := listsdb.UpdateListDB(newList, UserID, listID)
+	result := listsdb.UpdateListDB(newList, idUser, listID)
 	fmt.Println(result)
 	json.NewEncoder(w).Encode(result)
 }
