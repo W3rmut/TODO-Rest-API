@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	dbusers "restapi/pkg/service"
 )
@@ -14,17 +15,26 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	fmt.Println(user)
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		err := json.NewEncoder(w).Encode(err)
+		if err != nil {
+			log.Fatal("Error decoding JSON")
+		}
 	}
 
 	usernameCheck := dbusers.CheckUsername(user.Name)
 	if usernameCheck {
 		result, err := dbusers.CreateUser(user)
 		if err != nil {
-			json.NewEncoder(w).Encode(err)
+			errW := json.NewEncoder(w).Encode(err)
+			if errW != nil {
+				log.Fatal("Error decoding JSON")
+			}
 		}
 		fmt.Println(result)
-		json.NewEncoder(w).Encode(result)
+		errW := json.NewEncoder(w).Encode(result)
+		if errW != nil {
+			log.Fatal("Error decoding JSON")
+		}
 		fmt.Println(user, err)
 	} else {
 		json.NewEncoder(w).Encode("username used")

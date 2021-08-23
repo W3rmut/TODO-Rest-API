@@ -16,7 +16,7 @@ type Database struct {
 	DatabaseName     string `toml:"database_name"`
 }
 
-// Jwt - struct for JWT tokens konfigs
+// Jwt - struct for JWT tokens cfg
 type Jwt struct {
 	JwtKey string `toml:"key"`
 }
