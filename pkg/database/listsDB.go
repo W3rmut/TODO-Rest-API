@@ -1,30 +1,19 @@
-package service
+package database
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+	"restapi/pkg/data"
+	"restapi/pkg/logger"
 )
 
 //Структура для работы со списками из БД
 
-type ListInput struct {
-	Id          string `bson:"_id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	OwnerId     string `bson:"owner_id"`
-}
-
-type ListOutput struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	OwnerId     string `bson:"owner_id"`
-}
-
 func CheckList(userId string, listID string) bool {
-	var result ListInput
+	var result data.ListWithId
 	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	listIdBS, _ := primitive.ObjectIDFromHex(listID)
 	filter := bson.D{{"owner_id", userId}, {"_id", listIdBS}}
@@ -37,16 +26,19 @@ func CheckList(userId string, listID string) bool {
 	}
 }
 
-func GetAllListsDB(userId string) []ListInput {
-	var ListsResult []ListInput
+func GetAllListsDB(userId string) []data.ListWithId {
+	var ListsResult []data.ListWithId
 	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 
 	filter := bson.D{{"owner_id", userId}}
 
-	cur, _ := collection.Find(context.TODO(), filter)
+	cur, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		logger.Logger.Error(err)
+	}
 
 	for cur.Next(context.TODO()) {
-		var elem ListInput
+		var elem data.ListWithId
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
@@ -54,12 +46,13 @@ func GetAllListsDB(userId string) []ListInput {
 
 		ListsResult = append(ListsResult, elem)
 	}
+
 	return ListsResult
 }
 
-func GetListDB(params map[string]string, userId string) (ListInput, error) {
+func GetListDB(params map[string]string, userId string) (data.ListWithId, error) {
 
-	var result ListInput
+	var result data.ListWithId
 
 	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	var objectID, _ = primitive.ObjectIDFromHex(params["id"])
@@ -69,17 +62,20 @@ func GetListDB(params map[string]string, userId string) (ListInput, error) {
 	return result, nil
 }
 
-func CreateListDB(list ListOutput) int {
+func CreateListDB(list data.ListWithoutId) (interface{}, error) {
 
 	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	result, err := collection.InsertOne(context.TODO(), list)
-	fmt.Println(result, err)
-	return 1
+	if err != nil {
+		return nil, err
+	} else {
+		return result.InsertedID, nil
+	}
+
 }
 
-func UpdateListDB(list ListOutput, userID string, listID string) int {
+func UpdateListDB(list data.ListWithoutId, userID string, listID string) (bool, error) {
 	var objectID, _ = primitive.ObjectIDFromHex(listID)
-	fmt.Println(objectID)
 	filter := bson.D{{"owner_id", userID}, {"_id", objectID}}
 	newListBson := bson.D{
 		{"$set", bson.D{
@@ -88,19 +84,39 @@ func UpdateListDB(list ListOutput, userID string, listID string) int {
 		}},
 	}
 
-	fmt.Println(newListBson)
 	collection := clientGlobal.Database(DatabaseName).Collection("lists")
-	result, err := collection.UpdateOne(context.TODO(), filter, newListBson)
-	fmt.Println(result, err)
-	return 1
+	_, err := collection.UpdateOne(context.TODO(), filter, newListBson)
+	if err != nil {
+		return false, err
+	} else {
+		return true, err
+	}
 }
 
-func DeleteListDB(params map[string]string, userId string) error {
+func DeleteListDB(params map[string]string, userId string) (bool, error) {
 
 	collection := clientGlobal.Database(DatabaseName).Collection("lists")
 	var objectID, _ = primitive.ObjectIDFromHex(params["id"])
 	filter := bson.D{{"owner_id", userId}, {"_id", objectID}}
-	collection.DeleteOne(context.TODO(), filter)
+	_, err := collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		logger.Logger.Error("Error Delete List ")
+		return false, err
+	}
+	_, err = DeleteItemsFromList(params["id"])
+	if err != nil {
+		logger.Logger.Error("Error Delete List Items")
+		return false, err
+	}
+	return true, err
+}
 
-	return nil
+func DeleteItemsFromList(listID string) (*mongo.DeleteResult, error) {
+
+	collection := clientGlobal.Database(DatabaseName).Collection("items")
+
+	filter := bson.D{{"list_id", listID}}
+	result, err := collection.DeleteMany(context.TODO(), filter)
+
+	return result, err
 }

@@ -1,4 +1,4 @@
-package service
+package database
 
 import (
 	"context"
@@ -25,12 +25,7 @@ func Connect() error {
 	if err != nil {
 		return err
 	}
-
+	DatabaseName = config.ResultConfig.DatabaseConfig.DatabaseName
 	clientGlobal = client
-	return nil
-}
-
-func CloseConnect() error {
-
 	return nil
 }

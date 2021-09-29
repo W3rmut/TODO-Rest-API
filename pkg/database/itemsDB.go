@@ -1,4 +1,4 @@
-package service
+package database
 
 import (
 	"context"
@@ -6,32 +6,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+	"restapi/pkg/data"
 )
 
-type ItemInput struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Done        bool   `json:"done"`
-	ListID      string `bson:"list_id"`
-}
+func GetAllItemsDB(listID string) ([]data.ItemWithId, error) {
 
-type ItemOutput struct {
-	Id          string `bson:"_id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Done        bool   `json:"done"`
-	ListID      string `bson:"list_id"`
-}
-
-func GetAllItemsDB(listID string) ([]ItemOutput, error) {
-
-	var result []ItemOutput
+	var result []data.ItemWithId
 	collection := clientGlobal.Database("test").Collection("items")
-	//listIdBS,_ := primitive.ObjectIDFromHex(listID)
 	filter := bson.D{{"list_id", listID}}
 	cur, err := collection.Find(context.TODO(), filter)
 	for cur.Next(context.TODO()) {
-		var elem ItemOutput
+		var elem data.ItemWithId
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
@@ -48,15 +33,15 @@ func GetAllItemsDB(listID string) ([]ItemOutput, error) {
 
 }
 
-func GetItemBD(listID string, itemID string) (ItemOutput, error) {
-	fmt.Println("//DB start:\n\n")
-	var result ItemOutput
+func GetItemBD(listID string, itemID string) (data.ItemWithId, error) {
+
+	var result data.ItemWithId
 	collection := clientGlobal.Database("test").Collection("items")
 	itemIdBS, _ := primitive.ObjectIDFromHex(itemID)
-	fmt.Println(listID, itemID)
+
 	filter := bson.D{{"list_id", listID}, {"_id", itemIdBS}}
 	err := collection.FindOne(context.TODO(), filter).Decode(&result)
-	fmt.Println(result)
+
 	if err != nil {
 		return result, fmt.Errorf("Element not found")
 	}
@@ -65,17 +50,17 @@ func GetItemBD(listID string, itemID string) (ItemOutput, error) {
 
 }
 
-func AddItemBD(listID string, input ItemInput) (interface{}, error) {
+func AddItemBD(listID string, input data.ItemWithoutId) (interface{}, error) {
 	input.ListID = listID
 	collection := clientGlobal.Database("test").Collection("items")
 	resultID, err := collection.InsertOne(context.TODO(), input)
 	if err != nil {
 		return nil, fmt.Errorf("Error create item")
 	}
-	return resultID, nil
+	return resultID.InsertedID, nil
 }
 
-func UpdateItemDB(listID string, itemID string, newItem ItemInput) (interface{}, error) {
+func UpdateItemDB(listID string, itemID string, newItem data.ItemWithoutId) (bool, error) {
 
 	var objectID, _ = primitive.ObjectIDFromHex(itemID)
 	filter := bson.D{{"list_id", listID}, {"_id", objectID}}
@@ -89,22 +74,23 @@ func UpdateItemDB(listID string, itemID string, newItem ItemInput) (interface{},
 		}},
 	}
 	collection := clientGlobal.Database("test").Collection("items")
-	result, err := collection.UpdateOne(context.TODO(), filter, newItemBson)
+	_, err := collection.UpdateOne(context.TODO(), filter, newItemBson)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	return result, nil
+	return true, nil
 }
 
-func DeleteItemDB(listID, itemID string) (interface{}, error) {
+func DeleteItemDB(listID, itemID string) (bool, error) {
 
 	collection := clientGlobal.Database("test").Collection("items")
 	var objectID, _ = primitive.ObjectIDFromHex(itemID)
 	filter := bson.D{{"list_id", listID}, {"_id", objectID}}
-	result, err := collection.DeleteOne(context.TODO(), filter)
+	_, err := collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
-		return nil, err
+		return false, err
+	} else {
+		return true, nil
 	}
 
-	return result, nil
 }

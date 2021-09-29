@@ -1,31 +1,27 @@
-package service
+package database
 
 import (
 	"context"
+	"crypto/sha1"
 	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"restapi/pkg/data"
 )
 
 //This file use for BD connections and other actions with database
+const salt = "asasd12312as12w"
 
-type UserInput struct {
-	Id           string `bson:"_id"`
-	Name         string `json:"name"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
-}
-
-type UserOutput struct {
-	Name         string `json:"name"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
+func PasswordHash(password string) string {
+	passwordHash := sha1.New()
+	passwordHash.Write([]byte(password))
+	return fmt.Sprintf("%x", passwordHash.Sum([]byte(salt)))
 }
 
 func CheckUsername(username string) bool {
 	creds := bson.D{{"name", username}}
 
-	var resultUser UserInput
+	var resultUser data.UserWithId
 	collection := clientGlobal.Database("test").Collection("users")
 	collection.FindOne(context.TODO(), creds).Decode(&resultUser)
 	if resultUser.Name == "" {
@@ -35,12 +31,14 @@ func CheckUsername(username string) bool {
 	}
 }
 
-func CreateUser(user UserOutput) (interface{}, error) {
-	resultUser := UserOutput{Name: user.Name, Email: user.Email, PasswordHash: user.PasswordHash}
+func CreateUser(user data.UserWithoutId) (interface{}, error) {
+
+	user.PasswordHash = PasswordHash(user.PasswordHash)
+	resultUser := data.UserWithoutId{Name: user.Name, Email: user.Email, PasswordHash: user.PasswordHash}
 	collection := clientGlobal.Database("test").Collection("users")
 	insertResult, err := collection.InsertOne(context.TODO(), resultUser)
 	if err != nil {
-		return 0, errors.New("User not found")
+		return 0, errors.New("Error creating user: ")
 	} else {
 		return insertResult.InsertedID, nil
 	}
@@ -48,16 +46,16 @@ func CreateUser(user UserOutput) (interface{}, error) {
 }
 
 //Выполняет авторизацию. Возвращает токен авторизации или ошибку
-func AuthUser(user UserInput) (UserInput, error) {
-	creds := bson.D{{"name", user.Name}, {"password_hash", user.PasswordHash}}
-	var resultUser UserInput
+func AuthUser(user data.UserWithId) (data.UserWithId, error) {
+	user.PasswordHash = PasswordHash(user.PasswordHash)
+	fmt.Println(user.PasswordHash)
+	filter := bson.D{{"name", user.Name}, {"passwordhash", user.PasswordHash}}
+	var resultUser data.UserWithId
 	collection := clientGlobal.Database("test").Collection("users")
-	collection.FindOne(context.TODO(), creds).Decode(&resultUser)
-	fmt.Println(resultUser.Name)
+	collection.FindOne(context.TODO(), filter).Decode(&resultUser)
 	if resultUser.Name == "" {
 		return resultUser, errors.New("User not found")
 	} else {
-		fmt.Println(resultUser)
 		return resultUser, nil
 	}
 

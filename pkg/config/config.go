@@ -14,6 +14,7 @@ type Server struct {
 type Database struct {
 	ConnectionString string `toml:"connection_string"`
 	DatabaseName     string `toml:"database_name"`
+	Salt             string `toml:"salt"`
 }
 
 // Jwt - struct for JWT tokens cfg
@@ -21,9 +22,9 @@ type Jwt struct {
 	JwtKey string `toml:"key"`
 }
 
-// Logs - struct for Logs configs
 type Logs struct {
-	LogFilePath string `toml:"path"`
+	LogLevel string `toml:"log_level"`
+	LogFile  string `toml:"log_file"`
 }
 
 // Config  - Main struct for all settings
@@ -58,7 +59,6 @@ func ParseConfig(configFile string) {
 		ApplyDefaultConfig(&ResultConfig)
 		return
 	}
-	fmt.Println("cfg\n:", conf)
 	ResultConfig = conf
 
 }

@@ -1,20 +1,20 @@
-package handler
+package jwt
 
 import (
-	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"restapi/pkg/config"
-	"restapi/pkg/service"
+	"restapi/pkg/data"
+	"restapi/pkg/logger"
 	"strings"
 	"time"
 )
 
-var key string
+var Key string
 
 func UpdateKey() {
-	key = config.ResultConfig.JwtConfig.JwtKey
+	Key = config.ResultConfig.JwtConfig.JwtKey
 }
 
 type jwtStruct struct {
@@ -30,9 +30,12 @@ func GetUserId(request *http.Request) (string, error) {
 	tokenString = splitToken[1]
 	claims := &jwtStruct{}
 	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(key), nil
+		return []byte(Key), nil
 	})
-	fmt.Println("parseerror: ", err)
+	if err != nil {
+		logger.Logger.Error("Error parse token", err)
+	}
+
 	if err != nil {
 		return "", fmt.Errorf("Can't read the token")
 	} else {
@@ -41,30 +44,29 @@ func GetUserId(request *http.Request) (string, error) {
 
 }
 
-func checkToken(acessToken string, signingKey []byte) (bool, string, error) {
+func CheckToken(acessToken string, signingKey []byte) error {
 
 	token, err := jwt.ParseWithClaims(acessToken, &jwtStruct{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("Unexpected signing method: %v poshel nahui otusda mosheinik", token.Header["alg"])
 		} else {
 			return signingKey, nil
 		}
 	})
 
 	if err != nil {
-		return false, "", fmt.Errorf("Invalid token")
+		return fmt.Errorf("Invalid token")
 	}
 
-	if claims, claimsOk := token.Claims.(*jwtStruct); claimsOk && token.Valid {
-		fmt.Println()
-		return true, claims.Name, nil
+	if _, claimsOk := token.Claims.(*jwtStruct); claimsOk && token.Valid {
+		return nil
 	} else {
-		return false, "", errors.New("Invalid struct token")
+		return fmt.Errorf("Invalid struct token")
 	}
 
 }
 
-func createToken(user service.UserInput) (string, error) {
+func CreateToken(user data.UserWithId) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwtStruct{jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(12 * time.Hour).Unix(),
@@ -73,5 +75,5 @@ func createToken(user service.UserInput) (string, error) {
 		user.Id,
 		user.Name})
 
-	return token.SignedString([]byte(key))
+	return token.SignedString([]byte(Key))
 }

@@ -1,0 +1,531 @@
+schemes:
+  - http
+  - https
+swagger: '2.0'
+info:
+  description: '- Simple REST API for TODO lists'
+  title: '- TODO Rest API'
+  contact: {}
+  version: '- 0.3'
+host: localhost:8080
+basePath: /
+paths:
+  /list/{listID}/items:
+    get:
+      parameters:
+        - name: listID
+          in: path
+          description: Id list
+          required: true
+          type: string
+      security:
+        - ApiKeyAuth: []
+      description: '- Returns all items in list'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Items
+      summary: Get All items in list
+      operationId: GetAllItemsInList
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/data.ItemWithId'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+    post:
+      security:
+        - ApiKeyAuth: []
+      description: '- Create new item in list'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Items
+      summary: Add item in list
+      operationId: AddItemInList
+      parameters:
+        - name: listID
+          in: path
+          description: Id list
+          required: true
+          type: string
+        - description: New list data
+          name: input
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/data.ListWithoutId'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.ResponseWithID'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+  /list/{listID}/items/{itemID}:
+    get:
+      parameters:
+        - name: listID
+          in: path
+          description: Id list
+          required: true
+          type: string
+        - name: itemID
+          in: path
+          description: Id item
+          required: true
+          type: string
+      security:
+        - ApiKeyAuth: []
+      description: '- Returns one items in list with id in path'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Items
+      summary: Get item in list
+      operationId: GetItem
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.ItemWithId'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+    put:
+      security:
+        - ApiKeyAuth: []
+      description: '- Get all user Lists'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Items
+      summary: '- Get All lists'
+      operationId: UpdateItem
+      parameters:
+        - name: listID
+          in: path
+          description: Id list
+          required: true
+          type: string
+        - name: itemID
+          in: path
+          description: Id item
+          required: true
+          type: string
+        - description: Update list data
+          name: input
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/data.ItemWithoutId'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.StatusResponse'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+    delete:
+      parameters:
+        - name: listID
+          in: path
+          description: Id list
+          required: true
+          type: string
+        - name: itemID
+          in: path
+          description: Id item
+          required: true
+          type: string
+      security:
+        - ApiKeyAuth: []
+      description: '- Get all user Lists'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Items
+      summary: '- Get All lists'
+      operationId: DeleteItem
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.StatusResponse'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+  /lists:
+    get:
+      security:
+        - ApiKeyAuth: []
+      description: Get all user Lists
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Lists
+      summary: Get All lists
+      operationId: lists
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/data.ListWithId'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+    post:
+      security:
+        - ApiKeyAuth: []
+      description: Get all user Lists
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Lists
+      summary: Create List
+      operationId: CreateList
+      parameters:
+        - description: List data
+          name: input
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/data.ListWithoutId'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.ResponseWithID'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+  /lists/{listID}:
+    get:
+      parameters:
+        - name: listID
+          in: path
+          description: Id list
+          required: true
+          type: string
+      security:
+        - ApiKeyAuth: []
+      description: Get all user Lists
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Lists
+      summary: Get list
+      operationId: list
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.ListWithId'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+    put:
+      security:
+        - ApiKeyAuth: []
+      description: Get all user Lists
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Lists
+      summary: Update List
+      operationId: UpdateList
+      parameters:
+        - name: listID
+          in: path
+          description: Id list
+          required: true
+          type: string
+        - description: List data
+          name: input
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/data.ListWithoutId'
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+    delete:
+      parameters:
+        - name: listID
+          in: path
+          description: Id list
+          required: true
+          type: string
+      security:
+        - ApiKeyAuth: []
+      description: Get all user Lists
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Lists
+      summary: Delete List
+      operationId: DeleteList
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.StatusResponse'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+  /sign-in:
+    post:
+      description: Authorization.Return Bearer JWT token for aith header
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Authorization
+      summary: Sign In
+      operationId: signin
+      parameters:
+        - description: user data
+          name: input
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/data.UserWithoutId'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.AuthorizationResponse'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+  /sign-up:
+    post:
+      description: Create new user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Authorization
+      summary: Sign Up
+      operationId: signup
+      parameters:
+        - description: New User Data
+          name: input
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/data.UserWithoutId'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/data.StatusResponse'
+        '401':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.ErrorResponse'
+definitions:
+  data.AuthorizationResponse:
+    type: object
+    properties:
+      token:
+        type: string
+  data.ErrorResponse:
+    type: object
+    properties:
+      error:
+        type: string
+  data.ItemWithId:
+    type: object
+    properties:
+      description:
+        type: string
+      done:
+        type: boolean
+      id:
+        type: string
+      listID:
+        type: string
+      title:
+        type: string
+  data.ItemWithoutId:
+    type: object
+    properties:
+      description:
+        type: string
+      done:
+        type: boolean
+      listID:
+        type: string
+      title:
+        type: string
+  data.ListWithId:
+    type: object
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      ownerId:
+        type: string
+      title:
+        type: string
+  data.ListWithoutId:
+    type: object
+    properties:
+      description:
+        type: string
+      ownerId:
+        type: string
+      title:
+        type: string
+  data.ResponseWithID:
+    type: object
+    properties:
+      id:
+        type: object
+  data.StatusResponse:
+    type: object
+    properties:
+      result:
+        type: boolean
+  data.UserWithoutId:
+    type: object
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password_hash:
+        type: string
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    name: Authorization
+    in: header
