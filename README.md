@@ -1,4 +1,5 @@
 ![Github Repository Size](https://img.shields.io/github/languages/code-size/W3rmut/TODO-Rest-API)
+![Github Go Version](https://img.shields.io/github/go-mod/go-version/W3rmut/TODO-Rest-API)
 
 ## **REST API для работы с TODO списками**
 ____________________________________________________________________________
